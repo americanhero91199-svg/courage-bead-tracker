@@ -9,46 +9,89 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { JournalNoteDialog } from "@/components/journal-note-dialog";
 import { format, parseISO } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowUp, Calendar, Edit2, Sparkles } from "lucide-react";
+import {
+  ArrowUp,
+  Calendar,
+  Edit2,
+  Sparkles,
+  BookHeart,
+  Plus,
+} from "lucide-react";
 import { useLocation } from "wouter";
-import type { Bead } from "@/lib/types";
+import type { Bead, JournalNote } from "@/lib/types";
 
 type Item =
   | { kind: "month"; key: string; label: string; y: number }
-  | { kind: "bead"; key: string; bead: Bead; xPct: number; y: number; index: number };
+  | {
+      kind: "bead";
+      key: string;
+      bead: Bead;
+      xPct: number;
+      y: number;
+      index: number;
+    }
+  | {
+      kind: "note";
+      key: string;
+      note: JournalNote;
+      xPct: number;
+      y: number;
+      index: number;
+    };
 
-const ROW_HEIGHT = 116;
+const ROW_HEIGHT_BEAD = 116;
+const ROW_HEIGHT_NOTE = 76;
 const MONTH_HEIGHT = 64;
 const TOP_PADDING = 56;
 const BOTTOM_PADDING = 96;
 const X_AMPLITUDE = 32; // % from center
 const X_CENTER = 50; // %
 
+type Entry =
+  | { kind: "bead"; bead: Bead; date: number }
+  | { kind: "note"; note: JournalNote; date: number };
+
 export default function Timeline() {
-  const { beads } = useBeadStore();
+  const { beads, notes } = useBeadStore();
   const [, setLocation] = useLocation();
   const [selectedBead, setSelectedBead] = useState<Bead | null>(null);
+  const [activeNote, setActiveNote] = useState<JournalNote | null>(null);
+  const [editingNote, setEditingNote] = useState<JournalNote | null>(null);
+  const [isCreatingNote, setIsCreatingNote] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
 
-  // Chronological order (oldest first) so the timeline reads top-to-bottom in time.
-  const chronological = useMemo(
-    () =>
-      [...beads].sort(
-        (a, b) =>
-          new Date(a.earnedAt).getTime() - new Date(b.earnedAt).getTime(),
-      ),
-    [beads],
-  );
+  // Combine beads + notes in chronological order (oldest first).
+  const entries: Entry[] = useMemo(() => {
+    const beadEntries: Entry[] = beads.map((b) => ({
+      kind: "bead",
+      bead: b,
+      date: new Date(b.earnedAt).getTime(),
+    }));
+    const noteEntries: Entry[] = notes.map((n) => ({
+      kind: "note",
+      note: n,
+      date: new Date(n.date).getTime(),
+    }));
+    return [...beadEntries, ...noteEntries].sort((a, b) => {
+      if (a.date !== b.date) return a.date - b.date;
+      // Tie-break: notes after beads on same day so the bead anchors the spot.
+      if (a.kind !== b.kind) return a.kind === "bead" ? -1 : 1;
+      return 0;
+    });
+  }, [beads, notes]);
 
   const { items, totalHeight, beadPoints } = useMemo(() => {
     const items: Item[] = [];
     let y = TOP_PADDING;
     let lastMonth = "";
 
-    chronological.forEach((bead, index) => {
-      const monthKey = format(parseISO(bead.earnedAt), "MMMM yyyy");
+    entries.forEach((entry, index) => {
+      const dateIso =
+        entry.kind === "bead" ? entry.bead.earnedAt : entry.note.date;
+      const monthKey = format(parseISO(dateIso), "MMMM yyyy");
       if (monthKey !== lastMonth) {
         items.push({
           kind: "month",
@@ -60,23 +103,37 @@ export default function Timeline() {
         lastMonth = monthKey;
       }
 
-      // Sine-based winding x position. Offset so even single-month strings curve.
-      const xPct =
-        X_CENTER + Math.sin(index * 0.85 + 0.4) * X_AMPLITUDE;
+      const xPct = X_CENTER + Math.sin(index * 0.85 + 0.4) * X_AMPLITUDE;
 
-      items.push({
-        kind: "bead",
-        key: bead.id,
-        bead,
-        xPct,
-        y: y + ROW_HEIGHT / 2,
-        index,
-      });
-      y += ROW_HEIGHT;
+      if (entry.kind === "bead") {
+        items.push({
+          kind: "bead",
+          key: entry.bead.id,
+          bead: entry.bead,
+          xPct,
+          y: y + ROW_HEIGHT_BEAD / 2,
+          index,
+        });
+        y += ROW_HEIGHT_BEAD;
+      } else {
+        items.push({
+          kind: "note",
+          key: entry.note.id,
+          note: entry.note,
+          xPct,
+          y: y + ROW_HEIGHT_NOTE / 2,
+          index,
+        });
+        y += ROW_HEIGHT_NOTE;
+      }
     });
 
+    // Path connects through every interactive item (beads + notes) so notes
+    // sit naturally on the winding line between beads.
     const beadPoints = items.flatMap((it) =>
-      it.kind === "bead" ? [{ x: it.xPct, y: it.y }] : [],
+      it.kind === "bead" || it.kind === "note"
+        ? [{ x: it.xPct, y: it.y }]
+        : [],
     );
 
     return {
@@ -84,9 +141,8 @@ export default function Timeline() {
       totalHeight: y + BOTTOM_PADDING,
       beadPoints,
     };
-  }, [chronological]);
+  }, [entries]);
 
-  // Build a smooth path through bead points using quadratic curves toward center.
   const pathD = useMemo(() => {
     if (beadPoints.length === 0) return "";
     if (beadPoints.length === 1) {
@@ -98,13 +154,11 @@ export default function Timeline() {
       const prev = beadPoints[i - 1];
       const curr = beadPoints[i];
       const midY = (prev.y + curr.y) / 2;
-      // Control point pulls the curve toward center for a flowing S-shape.
       d += ` Q ${X_CENTER} ${midY} ${curr.x} ${curr.y}`;
     }
     return d;
   }, [beadPoints]);
 
-  // Show a "scroll to top" pill once the user scrolls down past the first screenful.
   useEffect(() => {
     const main = document.querySelector("main");
     if (!main) return;
@@ -120,9 +174,10 @@ export default function Timeline() {
     if (main) main.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  const isEmpty = beads.length === 0 && notes.length === 0;
+
   return (
     <Layout>
-      {/* Themed scrollable surface that matches the share card aesthetic */}
       <div
         className="relative min-h-full"
         style={{
@@ -131,7 +186,6 @@ export default function Timeline() {
           scrollBehavior: "smooth",
         }}
       >
-        {/* Soft decorative blobs */}
         <div
           aria-hidden
           className="pointer-events-none absolute inset-0 overflow-hidden"
@@ -141,16 +195,27 @@ export default function Timeline() {
           <div className="absolute bottom-10 -right-10 w-56 h-56 rounded-full bg-pink-300/25 blur-3xl" />
         </div>
 
-        <div className="relative px-6 pt-6 pb-2">
-          <h1 className="text-3xl font-display font-bold text-foreground">
-            Courage Timeline
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            Every bead, every brave step — in order.
-          </p>
+        <div className="relative px-6 pt-6 pb-3 flex items-start justify-between gap-3">
+          <div>
+            <h1 className="text-3xl font-display font-bold text-foreground">
+              Courage Timeline
+            </h1>
+            <p className="text-muted-foreground mt-1">
+              Beads and reflections, in order.
+            </p>
+          </div>
+          <Button
+            size="sm"
+            onClick={() => setIsCreatingNote(true)}
+            className="rounded-full h-10 px-4 shrink-0 shadow-md shadow-primary/20"
+            data-testid="add-note-button"
+          >
+            <Plus className="w-4 h-4 mr-1" />
+            Note
+          </Button>
         </div>
 
-        {chronological.length === 0 ? (
+        {isEmpty ? (
           <div className="relative px-6 py-16">
             <div className="rounded-3xl bg-white/70 border border-white/80 backdrop-blur p-8 text-center shadow-sm">
               <div className="flex justify-center mb-4">
@@ -160,15 +225,26 @@ export default function Timeline() {
                 Your path begins here
               </h3>
               <p className="text-muted-foreground mb-6">
-                Add a bead and watch the journey wind down the page.
+                Add a bead or write a reflection to start the journey.
               </p>
-              <Button
-                onClick={() => setLocation("/add")}
-                size="lg"
-                className="rounded-2xl"
-              >
-                Add the first bead
-              </Button>
+              <div className="grid grid-cols-2 gap-3">
+                <Button
+                  variant="outline"
+                  onClick={() => setIsCreatingNote(true)}
+                  size="lg"
+                  className="rounded-2xl"
+                >
+                  <BookHeart className="w-4 h-4 mr-2" />
+                  Reflection
+                </Button>
+                <Button
+                  onClick={() => setLocation("/add")}
+                  size="lg"
+                  className="rounded-2xl"
+                >
+                  Add bead
+                </Button>
+              </div>
             </div>
           </div>
         ) : (
@@ -177,7 +253,6 @@ export default function Timeline() {
             style={{ height: totalHeight }}
             data-testid="timeline-canvas"
           >
-            {/* Winding path */}
             <svg
               aria-hidden
               className="absolute inset-0 w-full h-full"
@@ -208,25 +283,38 @@ export default function Timeline() {
               />
             </svg>
 
-            {/* Items overlay */}
-            {items.map((it) =>
-              it.kind === "month" ? (
-                <MonthMarker key={it.key} y={it.y} label={it.label} />
-              ) : (
-                <BeadDot
+            {items.map((it) => {
+              if (it.kind === "month") {
+                return (
+                  <MonthMarker key={it.key} y={it.y} label={it.label} />
+                );
+              }
+              if (it.kind === "bead") {
+                return (
+                  <BeadDot
+                    key={it.key}
+                    bead={it.bead}
+                    xPct={it.xPct}
+                    y={it.y}
+                    index={it.index}
+                    onTap={() => setSelectedBead(it.bead)}
+                  />
+                );
+              }
+              return (
+                <NoteDot
                   key={it.key}
-                  bead={it.bead}
+                  note={it.note}
                   xPct={it.xPct}
                   y={it.y}
                   index={it.index}
-                  onTap={() => setSelectedBead(it.bead)}
+                  onTap={() => setActiveNote(it.note)}
                 />
-              ),
-            )}
+              );
+            })}
           </div>
         )}
 
-        {/* Scroll to top */}
         <AnimatePresence>
           {showScrollTop && (
             <motion.button
@@ -250,6 +338,27 @@ export default function Timeline() {
         onEdit={(id) => {
           setSelectedBead(null);
           setLocation(`/add/${id}`);
+        }}
+      />
+
+      <NoteViewDialog
+        note={activeNote}
+        onOpenChange={(open) => !open && setActiveNote(null)}
+        onEdit={(note) => {
+          setActiveNote(null);
+          setEditingNote(note);
+        }}
+      />
+
+      <JournalNoteDialog
+        open={isCreatingNote}
+        onOpenChange={setIsCreatingNote}
+      />
+      <JournalNoteDialog
+        open={!!editingNote}
+        note={editingNote}
+        onOpenChange={(open) => {
+          if (!open) setEditingNote(null);
         }}
       />
     </Layout>
@@ -287,7 +396,6 @@ function BeadDot({
 }) {
   const isGlow = bead.colorName === "Glow";
   const dateLabel = format(parseISO(bead.earnedAt), "MMM d");
-  // Alternate label side based on which side of the curve the bead is on.
   const labelSide = xPct >= X_CENTER ? "left" : "right";
 
   return (
@@ -307,16 +415,65 @@ function BeadDot({
       className="absolute z-20 -translate-x-1/2 -translate-y-1/2 group focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 rounded-full"
       style={{ left: `${xPct}%`, top: y }}
       aria-label={`${bead.colorName} bead — ${bead.reason}, ${format(parseISO(bead.earnedAt), "MMMM d, yyyy")}`}
+      data-testid="timeline-bead"
     >
       <span className="block transition-transform group-hover:scale-110">
         <BeadIcon color={bead.color} size={56} isGlow={isGlow} />
       </span>
-      {/* Date pill floating beside the bead */}
       <span
         className={`absolute top-1/2 -translate-y-1/2 whitespace-nowrap text-[11px] font-semibold text-foreground/70 bg-white/80 backdrop-blur px-2 py-0.5 rounded-full border border-white shadow-sm ${
           labelSide === "left"
             ? "right-full mr-2"
             : "left-full ml-2"
+        }`}
+      >
+        {dateLabel}
+      </span>
+    </motion.button>
+  );
+}
+
+function NoteDot({
+  note,
+  xPct,
+  y,
+  index,
+  onTap,
+}: {
+  note: JournalNote;
+  xPct: number;
+  y: number;
+  index: number;
+  onTap: () => void;
+}) {
+  const dateLabel = format(parseISO(note.date), "MMM d");
+  const labelSide = xPct >= X_CENTER ? "left" : "right";
+
+  return (
+    <motion.button
+      type="button"
+      onClick={onTap}
+      initial={{ opacity: 0, scale: 0.5 }}
+      whileInView={{ opacity: 1, scale: 1 }}
+      viewport={{ once: true, margin: "-40px" }}
+      transition={{
+        type: "spring",
+        stiffness: 220,
+        damping: 18,
+        delay: Math.min(index * 0.03, 0.5),
+      }}
+      whileTap={{ scale: 0.9 }}
+      className="absolute z-20 -translate-x-1/2 -translate-y-1/2 group focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 rounded-2xl"
+      style={{ left: `${xPct}%`, top: y }}
+      aria-label={`Reflection on ${format(parseISO(note.date), "MMMM d, yyyy")}`}
+      data-testid="timeline-note"
+    >
+      <span className="block w-9 h-9 rounded-2xl bg-white border border-primary/25 shadow-md shadow-primary/10 flex items-center justify-center text-primary transition-transform group-hover:scale-110">
+        <BookHeart className="w-4 h-4" />
+      </span>
+      <span
+        className={`absolute top-1/2 -translate-y-1/2 whitespace-nowrap text-[11px] font-semibold text-primary bg-white/85 backdrop-blur px-2 py-0.5 rounded-full border border-primary/15 shadow-sm ${
+          labelSide === "left" ? "right-full mr-2" : "left-full ml-2"
         }`}
       >
         {dateLabel}
@@ -397,6 +554,88 @@ function BeadDetailDialog({
                 size="lg"
                 onClick={() => onEdit(bead.id)}
                 className="rounded-2xl h-12"
+              >
+                <Edit2 className="w-4 h-4 mr-2" />
+                Edit
+              </Button>
+            </div>
+          </>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function NoteViewDialog({
+  note,
+  onOpenChange,
+  onEdit,
+}: {
+  note: JournalNote | null;
+  onOpenChange: (open: boolean) => void;
+  onEdit: (note: JournalNote) => void;
+}) {
+  const isOpen = !!note;
+  return (
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent
+        className="max-w-[92vw] sm:max-w-[440px] rounded-3xl border-0 p-0 overflow-hidden"
+        data-testid="journal-view-dialog"
+      >
+        <DialogTitle className="sr-only">
+          {note
+            ? `Reflection on ${format(parseISO(note.date), "MMMM d, yyyy")}`
+            : "Reflection"}
+        </DialogTitle>
+        <DialogDescription className="sr-only">
+          {note?.text ?? ""}
+        </DialogDescription>
+
+        {note && (
+          <>
+            <div
+              className="px-6 pt-7 pb-6 text-center"
+              style={{
+                background:
+                  "linear-gradient(160deg, #FFF8E5 0%, #FFE3E2 100%)",
+              }}
+            >
+              <div className="flex justify-center mb-4">
+                <div className="w-16 h-16 rounded-3xl bg-white shadow-md flex items-center justify-center text-primary">
+                  <BookHeart className="w-7 h-7" />
+                </div>
+              </div>
+              <div className="text-xs font-bold uppercase tracking-widest text-primary mb-1">
+                Reflection
+              </div>
+              <p className="text-sm text-muted-foreground">
+                {format(parseISO(note.date), "EEEE, MMMM d, yyyy")}
+              </p>
+            </div>
+
+            <div className="px-6 py-5 bg-card max-h-[40vh] overflow-y-auto">
+              <p
+                className="text-base text-foreground/90 leading-relaxed whitespace-pre-wrap"
+                data-testid="journal-view-text"
+              >
+                {note.text}
+              </p>
+            </div>
+
+            <div className="px-6 pb-6 pt-2 grid grid-cols-2 gap-3 bg-card">
+              <Button
+                variant="outline"
+                size="lg"
+                onClick={() => onOpenChange(false)}
+                className="rounded-2xl h-12"
+              >
+                Close
+              </Button>
+              <Button
+                size="lg"
+                onClick={() => onEdit(note)}
+                className="rounded-2xl h-12"
+                data-testid="journal-edit-button"
               >
                 <Edit2 className="w-4 h-4 mr-2" />
                 Edit

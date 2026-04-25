@@ -15,6 +15,15 @@ export type Bead = {
   notes?: string;
 };
 
+export type JournalNote = {
+  id: string;
+  childId: string;
+  date: string; // ISO date string (YYYY-MM-DD or full ISO)
+  text: string;
+  createdAt: string; // ISO
+  updatedAt: string; // ISO
+};
+
 export type PresetBead = {
   color: string;
   colorName: string;

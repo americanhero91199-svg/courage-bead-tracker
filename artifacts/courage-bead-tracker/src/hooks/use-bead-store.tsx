@@ -1,35 +1,52 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
-import { Child, Bead } from "@/lib/types";
+import { Child, Bead, JournalNote } from "@/lib/types";
 
 const STORE_KEY = "courage-bead-tracker:v1";
 
 type State = {
   child: Child | null;
   beads: Bead[];
+  notes: JournalNote[];
 };
 
 type BeadStoreContextType = {
   child: Child | null;
   beads: Bead[];
+  notes: JournalNote[];
   setChildName: (name: string) => void;
   addBead: (bead: Omit<Bead, "id" | "childId">) => void;
   updateBead: (id: string, updates: Partial<Omit<Bead, "id" | "childId">>) => void;
   deleteBead: (id: string) => void;
+  addNote: (note: { date: string; text: string }) => JournalNote | null;
+  updateNote: (id: string, updates: { date?: string; text?: string }) => void;
+  deleteNote: (id: string) => void;
   clearData: () => void;
   isLoaded: boolean;
 };
 
 const BeadStoreContext = createContext<BeadStoreContextType | null>(null);
 
+const EMPTY_STATE: State = { child: null, beads: [], notes: [] };
+
+function normalizeState(raw: unknown): State {
+  if (!raw || typeof raw !== "object") return EMPTY_STATE;
+  const r = raw as Partial<State>;
+  return {
+    child: r.child ?? null,
+    beads: Array.isArray(r.beads) ? r.beads : [],
+    notes: Array.isArray(r.notes) ? r.notes : [],
+  };
+}
+
 export function BeadStoreProvider({ children }: { children: React.ReactNode }) {
-  const [state, setState] = useState<State>({ child: null, beads: [] });
+  const [state, setState] = useState<State>(EMPTY_STATE);
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
     try {
       const stored = localStorage.getItem(STORE_KEY);
       if (stored) {
-        setState(JSON.parse(stored));
+        setState(normalizeState(JSON.parse(stored)));
       }
     } catch (e) {
       console.error("Failed to load store", e);
@@ -99,19 +116,68 @@ export function BeadStoreProvider({ children }: { children: React.ReactNode }) {
     });
   }, [saveState]);
 
+  const addNote = useCallback((note: { date: string; text: string }): JournalNote | null => {
+    let created: JournalNote | null = null;
+    setState(prev => {
+      if (!prev.child) return prev;
+      const now = new Date().toISOString();
+      const newNote: JournalNote = {
+        id: crypto.randomUUID(),
+        childId: prev.child.id,
+        date: note.date,
+        text: note.text,
+        createdAt: now,
+        updatedAt: now,
+      };
+      created = newNote;
+      const newState = {
+        ...prev,
+        notes: [...prev.notes, newNote].sort(
+          (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
+        ),
+      };
+      saveState(newState);
+      return newState;
+    });
+    return created;
+  }, [saveState]);
+
+  const updateNote = useCallback((id: string, updates: { date?: string; text?: string }) => {
+    setState(prev => {
+      const now = new Date().toISOString();
+      const newNotes = prev.notes
+        .map(n => n.id === id ? { ...n, ...updates, updatedAt: now } : n)
+        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+      const newState = { ...prev, notes: newNotes };
+      saveState(newState);
+      return newState;
+    });
+  }, [saveState]);
+
+  const deleteNote = useCallback((id: string) => {
+    setState(prev => {
+      const newState = { ...prev, notes: prev.notes.filter(n => n.id !== id) };
+      saveState(newState);
+      return newState;
+    });
+  }, [saveState]);
+
   const clearData = useCallback(() => {
-    const newState = { child: null, beads: [] };
-    saveState(newState);
+    saveState(EMPTY_STATE);
   }, [saveState]);
 
   return (
     <BeadStoreContext.Provider value={{
       child: state.child,
       beads: state.beads,
+      notes: state.notes,
       setChildName,
       addBead,
       updateBead,
       deleteBead,
+      addNote,
+      updateNote,
+      deleteNote,
       clearData,
       isLoaded,
     }}>
