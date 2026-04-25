@@ -1,19 +1,23 @@
+import { useState } from "react";
 import { useBeadStore } from "@/hooks/use-bead-store";
 import { Layout } from "@/components/layout";
 import { BeadIcon } from "@/components/bead";
+import { Button } from "@/components/ui/button";
+import { ShareCardDialog } from "@/components/share-card-dialog";
 import { format, parseISO, differenceInDays } from "date-fns";
 import { motion } from "framer-motion";
+import { Share2 } from "lucide-react";
 
 export default function Summary() {
   const { beads, child } = useBeadStore();
+  const [isShareOpen, setIsShareOpen] = useState(false);
 
   if (!child) return null;
 
   // Stats calculations
   const totalBeads = beads.length;
-  
+
   const firstBead = beads.length > 0 ? beads[beads.length - 1] : null;
-  const lastBead = beads.length > 0 ? beads[0] : null;
   const daysSinceStart = firstBead ? differenceInDays(new Date(), parseISO(firstBead.earnedAt)) : 0;
 
   // Group counts by color
@@ -37,7 +41,7 @@ export default function Summary() {
         </header>
 
         {/* Big Total */}
-        <motion.div 
+        <motion.div
           initial={{ scale: 0.95, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           className="bg-primary text-primary-foreground rounded-[2rem] p-8 text-center shadow-xl shadow-primary/20 relative overflow-hidden"
@@ -45,7 +49,7 @@ export default function Summary() {
           <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white to-transparent"></div>
           <h2 className="text-lg font-medium opacity-90 mb-2 relative z-10">Total Beads Earned</h2>
           <div className="text-7xl font-display font-bold tracking-tighter relative z-10 mb-2">{totalBeads}</div>
-          
+
           {firstBead && (
             <p className="text-sm opacity-80 mt-4 relative z-10">
               Journey started {format(parseISO(firstBead.earnedAt), "MMMM yyyy")}
@@ -55,13 +59,23 @@ export default function Summary() {
           )}
         </motion.div>
 
+        {/* Share button */}
+        <Button
+          size="lg"
+          onClick={() => setIsShareOpen(true)}
+          className="w-full h-14 rounded-2xl text-base font-semibold shadow-lg shadow-primary/20"
+        >
+          <Share2 className="w-5 h-5 mr-2" />
+          Create share card
+        </Button>
+
         {/* Breakdown */}
         {totalBeads > 0 && (
           <section className="space-y-4">
             <h3 className="text-xl font-display font-bold">Beads by Category</h3>
             <div className="grid gap-3">
               {sortedColorCounts.map(([name, data], i) => (
-                <motion.div 
+                <motion.div
                   key={name}
                   initial={{ x: 20, opacity: 0 }}
                   animate={{ x: 0, opacity: 1 }}
@@ -79,6 +93,8 @@ export default function Summary() {
           </section>
         )}
       </div>
+
+      <ShareCardDialog open={isShareOpen} onOpenChange={setIsShareOpen} />
     </Layout>
   );
 }
