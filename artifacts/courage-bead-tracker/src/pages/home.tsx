@@ -3,7 +3,7 @@ import { Link, useLocation } from "wouter";
 import { Layout } from "@/components/layout";
 import { BeadIcon } from "@/components/bead";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Trophy, PlusCircle, Sparkles, Route as RouteIcon } from "lucide-react";
+import { ArrowRight, Trophy, PlusCircle, Sparkles, Route as RouteIcon, CalendarDays } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function Home() {
@@ -83,15 +83,27 @@ export default function Home() {
               Add a New Bead
             </Button>
           </Link>
-          <Button
-            variant="outline"
-            size="lg"
-            onClick={() => setLocation("/timeline")}
-            className="w-full h-14 text-base rounded-2xl border-primary/30 text-primary hover:bg-primary/5"
-          >
-            <RouteIcon className="w-5 h-5 mr-2" />
-            View Courage Timeline
-          </Button>
+          <div className="grid grid-cols-2 gap-3">
+            <Button
+              variant="outline"
+              size="lg"
+              onClick={() => setLocation("/timeline")}
+              className="h-14 text-sm rounded-2xl border-primary/30 text-primary hover:bg-primary/5"
+            >
+              <RouteIcon className="w-5 h-5 mr-2" />
+              Timeline
+            </Button>
+            <Button
+              variant="outline"
+              size="lg"
+              onClick={() => setLocation("/recap")}
+              className="h-14 text-sm rounded-2xl border-primary/30 text-primary hover:bg-primary/5"
+              data-testid="home-recap-button"
+            >
+              <CalendarDays className="w-5 h-5 mr-2" />
+              Recap
+            </Button>
+          </div>
         </section>
 
       </div>

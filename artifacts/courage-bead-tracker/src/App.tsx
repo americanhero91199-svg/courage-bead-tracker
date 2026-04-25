@@ -11,6 +11,7 @@ import AddBead from "@/pages/add-bead";
 import BeadsList from "@/pages/beads-list";
 import Summary from "@/pages/summary";
 import Timeline from "@/pages/timeline";
+import Recap from "@/pages/recap";
 
 const queryClient = new QueryClient();
 
@@ -32,6 +33,7 @@ function ProtectedRouter() {
       <Route path="/add/:id" component={AddBead} />
       <Route path="/beads" component={BeadsList} />
       <Route path="/timeline" component={Timeline} />
+      <Route path="/recap" component={Recap} />
       <Route path="/summary" component={Summary} />
       
       <Route component={NotFound} />
