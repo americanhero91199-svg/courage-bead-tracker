@@ -118,7 +118,6 @@ function SettingsDialog({ open, onOpenChange }: { open: boolean, onOpenChange: (
             
             <div className="pt-4 border-t border-border">
               <Button 
-                variant="destructive" 
                 variant="outline"
                 className="w-full justify-start text-destructive hover:bg-destructive/10"
                 onClick={() => setIsConfirmClearOpen(true)}
