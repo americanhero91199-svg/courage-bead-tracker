@@ -10,6 +10,7 @@ import Home from "@/pages/home";
 import AddBead from "@/pages/add-bead";
 import BeadsList from "@/pages/beads-list";
 import Summary from "@/pages/summary";
+import Timeline from "@/pages/timeline";
 
 const queryClient = new QueryClient();
 
@@ -30,6 +31,7 @@ function ProtectedRouter() {
       <Route path="/add" component={AddBead} />
       <Route path="/add/:id" component={AddBead} />
       <Route path="/beads" component={BeadsList} />
+      <Route path="/timeline" component={Timeline} />
       <Route path="/summary" component={Summary} />
       
       <Route component={NotFound} />

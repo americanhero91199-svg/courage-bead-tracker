@@ -3,7 +3,7 @@ import { Link, useLocation } from "wouter";
 import { Layout } from "@/components/layout";
 import { BeadIcon } from "@/components/bead";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Trophy, PlusCircle, Sparkles } from "lucide-react";
+import { ArrowRight, Trophy, PlusCircle, Sparkles, Route as RouteIcon } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function Home() {
@@ -43,8 +43,8 @@ export default function Home() {
         <section>
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-display font-bold text-foreground">Recent Beads</h2>
-            <Button variant="ghost" size="sm" className="text-primary" onClick={() => setLocation("/beads")}>
-              View All <ArrowRight className="w-4 h-4 ml-1" />
+            <Button variant="ghost" size="sm" className="text-primary" onClick={() => setLocation("/timeline")}>
+              Timeline <ArrowRight className="w-4 h-4 ml-1" />
             </Button>
           </div>
           
@@ -76,13 +76,22 @@ export default function Home() {
         </section>
 
         {/* Quick Actions */}
-        <section className="grid grid-cols-1 gap-4">
+        <section className="grid grid-cols-1 gap-3">
           <Link href="/add">
             <Button size="lg" className="w-full h-16 text-lg rounded-2xl shadow-lg shadow-primary/20 bg-primary hover:bg-primary/90 text-primary-foreground group">
               <PlusCircle className="w-6 h-6 mr-2 group-hover:scale-110 transition-transform" />
               Add a New Bead
             </Button>
           </Link>
+          <Button
+            variant="outline"
+            size="lg"
+            onClick={() => setLocation("/timeline")}
+            className="w-full h-14 text-base rounded-2xl border-primary/30 text-primary hover:bg-primary/5"
+          >
+            <RouteIcon className="w-5 h-5 mr-2" />
+            View Courage Timeline
+          </Button>
         </section>
 
       </div>
