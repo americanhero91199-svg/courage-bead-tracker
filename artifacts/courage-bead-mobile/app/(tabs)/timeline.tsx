@@ -33,7 +33,7 @@ export default function TimelineTab() {
   const topPad = Platform.OS === "web" ? 67 : insets.top;
 
   const listItems: ListItem[] = useMemo(() => {
-    const combined: { kind: "bead"; bead: Bead; date: number } | { kind: "note"; note: JournalNote; date: number }[] =
+    const combined: ({ kind: "bead"; bead: Bead; date: number } | { kind: "note"; note: JournalNote; date: number })[] =
       [
         ...beads.map((b) => ({ kind: "bead" as const, bead: b, date: new Date(b.earnedAt).getTime() })),
         ...notes.map((n) => ({ kind: "note" as const, note: n, date: new Date(n.date).getTime() })),
