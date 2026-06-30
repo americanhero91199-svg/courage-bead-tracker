@@ -15,6 +15,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { BeadStoreProvider } from "@/context/BeadStoreContext";
+import { BeadDefinitionsProvider } from "@/context/BeadDefinitionsContext";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -36,6 +37,10 @@ function RootLayoutNav() {
       />
       <Stack.Screen
         name="recap"
+        options={{ animation: "slide_from_right" }}
+      />
+      <Stack.Screen
+        name="admin"
         options={{ animation: "slide_from_right" }}
       />
     </Stack>
@@ -64,9 +69,11 @@ export default function RootLayout() {
         <QueryClientProvider client={queryClient}>
           <GestureHandlerRootView style={{ flex: 1 }}>
             <KeyboardProvider>
-              <BeadStoreProvider>
-                <RootLayoutNav />
-              </BeadStoreProvider>
+              <BeadDefinitionsProvider>
+                <BeadStoreProvider>
+                  <RootLayoutNav />
+                </BeadStoreProvider>
+              </BeadDefinitionsProvider>
             </KeyboardProvider>
           </GestureHandlerRootView>
         </QueryClientProvider>

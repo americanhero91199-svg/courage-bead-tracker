@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import {
-  Alert,
   Modal,
   Platform,
   ScrollView,
@@ -21,7 +20,7 @@ import type { Bead } from "@/types";
 import { isGlowBead } from "@/data/beads";
 
 export default function HomeTab() {
-  const { child, beads, clearData } = useBeadStore();
+  const { child, beads } = useBeadStore();
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const [selectedBead, setSelectedBead] = useState<Bead | null>(null);
@@ -30,18 +29,7 @@ export default function HomeTab() {
   const recentBeads = beads.slice(0, 18);
 
   function handleSettings() {
-    Alert.alert("Settings", "Clear all data?", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Clear Data",
-        style: "destructive",
-        onPress: () => {
-          clearData();
-          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-          router.replace("/welcome");
-        },
-      },
-    ]);
+    router.push("/admin" as never);
   }
 
   if (!child) return null;

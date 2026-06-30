@@ -16,12 +16,13 @@ import { Feather } from "@expo/vector-icons";
 import { useBeadStore } from "@/context/BeadStoreContext";
 import { useColors } from "@/hooks/useColors";
 import { BeadBubble } from "@/components/BeadBubble";
-import { BEAD_PRESETS } from "@/data/beads";
+import { useBeadDefinitions } from "@/context/BeadDefinitionsContext";
 import { format } from "date-fns";
 
 export default function AddBead() {
   const { id } = useLocalSearchParams<{ id?: string }>();
   const { beads, addBead, updateBead, deleteBead } = useBeadStore();
+  const { presets: BEAD_PRESETS } = useBeadDefinitions();
   const colors = useColors();
   const insets = useSafeAreaInsets();
 

@@ -1,0 +1,1 @@
+- [expo-file-system-v56-api](expo-file-system-v56.md) — expo-file-system@56 has a new API; cacheDirectory/readAsStringAsync don't exist at top-level import

@@ -15,15 +15,16 @@ import * as Haptics from "expo-haptics";
 import { useBeadStore } from "@/context/BeadStoreContext";
 import { useColors } from "@/hooks/useColors";
 import { BeadBubble } from "@/components/BeadBubble";
-import { BEAD_PRESETS } from "@/data/beads";
+import { useBeadDefinitions } from "@/context/BeadDefinitionsContext";
 
 export default function Welcome() {
   const [name, setName] = useState("");
   const { setChildName } = useBeadStore();
+  const { presets } = useBeadDefinitions();
   const colors = useColors();
   const insets = useSafeAreaInsets();
 
-  const previewBeads = BEAD_PRESETS.slice(0, 7);
+  const previewBeads = presets.slice(0, 7);
 
   function handleStart() {
     const trimmed = name.trim();

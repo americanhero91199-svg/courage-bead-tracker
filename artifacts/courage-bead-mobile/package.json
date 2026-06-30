@@ -56,6 +56,9 @@
     "zod-validation-error": "^3.4.0"
   },
   "dependencies": {
-    "date-fns": "^3.6.0"
+    "date-fns": "^3.6.0",
+    "expo-document-picker": "^57.0.0",
+    "expo-file-system": "^56.0.8",
+    "expo-sharing": "^57.0.1"
   }
 }
