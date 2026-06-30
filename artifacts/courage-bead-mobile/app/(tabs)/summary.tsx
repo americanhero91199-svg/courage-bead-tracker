@@ -6,7 +6,7 @@ import { Feather } from "@expo/vector-icons";
 import { useBeadStore } from "@/context/BeadStoreContext";
 import { useColors } from "@/hooks/useColors";
 import { BeadBubble } from "@/components/BeadBubble";
-import { BEAD_PRESETS } from "@/types";
+import { isGlowBead } from "@/data/beads";
 
 type BeadTypeStat = {
   color: string;
@@ -26,8 +26,7 @@ export default function SummaryTab() {
     const map = new Map<string, BeadTypeStat>();
     for (const b of beads) {
       if (!map.has(b.colorName)) {
-        const preset = BEAD_PRESETS.find((p) => p.colorName === b.colorName);
-        map.set(b.colorName, { color: b.color, colorName: b.colorName, count: 0, isGlow: preset?.isGlow });
+        map.set(b.colorName, { color: b.color, colorName: b.colorName, count: 0, isGlow: isGlowBead(b.colorName) });
       }
       map.get(b.colorName)!.count++;
     }
@@ -81,7 +80,7 @@ export default function SummaryTab() {
                 <Text style={[styles.collectionTitle, { color: colors.foreground }]}>Full Collection</Text>
                 <View style={styles.beadsWrap}>
                   {beads.slice(0, 30).map((b, i) => (
-                    <BeadBubble key={i} color={b.color} size={24} isGlow={b.colorName === "Glow"} />
+                    <BeadBubble key={i} color={b.color} size={24} isGlow={isGlowBead(b.colorName)} />
                   ))}
                   {beads.length > 30 && (
                     <View style={[styles.morePill, { backgroundColor: colors.secondary }]}>

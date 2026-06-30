@@ -24,25 +24,30 @@ export type JournalNote = {
   updatedAt: string;
 };
 
-export type PresetBead = {
-  color: string;
-  colorName: string;
+// ---------------------------------------------------------------------------
+// BeadDefinition — the full shape of a bead entry in data/beads.ts.
+//
+// Fields:
+//   id           — stable identifier; never change after release (used as a key)
+//   name         — full display name shown in detail views, e.g. "Red Bead"
+//   colorName    — short label shown in the picker grid, e.g. "Red"
+//   color        — hex color string used by BeadBubble for rendering
+//   isGlow       — if true, BeadBubble renders the glow-in-the-dark effect
+//   category     — grouping label shown in future filter/search UIs
+//   reason       — short default reason pre-filled in the Add Bead form
+//   description  — one or two sentences explaining what this bead represents
+//   meaning      — optional quote, scripture, or encouraging phrase
+//   displayOrder — controls sort order in the picker; lower = first
+// ---------------------------------------------------------------------------
+export type BeadDefinition = {
+  id: string;
   name: string;
-  reason: string;
+  colorName: string;
+  color: string;
   isGlow?: boolean;
+  category: string;
+  reason: string;
+  description: string;
+  meaning?: string;
+  displayOrder: number;
 };
-
-export const BEAD_PRESETS: PresetBead[] = [
-  { color: "#e81c24", colorName: "Red", name: "Red Bead", reason: "Blood Transfusion" },
-  { color: "#ffe600", colorName: "Yellow", name: "Yellow Bead", reason: "Overnight Stay" },
-  { color: "#222222", colorName: "Black", name: "Black Bead", reason: "Needle Poke" },
-  { color: "#E8E8E8", colorName: "White", name: "White Bead", reason: "Chemotherapy" },
-  { color: "#005baa", colorName: "Blue", name: "Blue Bead", reason: "Clinic Visit" },
-  { color: "#8a2be2", colorName: "Purple", name: "Purple Bead", reason: "IV Fluids / Antibiotics" },
-  { color: "#1fa12e", colorName: "Green", name: "Green Bead", reason: "Radiation" },
-  { color: "#c8adf5", colorName: "Light Purple", name: "Light Purple Bead", reason: "Isolation" },
-  { color: "#ff8c00", colorName: "Orange", name: "Orange Bead", reason: "Line Placement" },
-  { color: "#f06292", colorName: "Magenta", name: "Magenta Bead", reason: "Emergency Room Visit" },
-  { color: "#ccff00", colorName: "Glow", name: "Glow-in-the-dark Bead", reason: "Radiation", isGlow: true },
-  { color: "#a0522d", colorName: "Brown", name: "Brown Bead", reason: "Hair Changes" },
-];

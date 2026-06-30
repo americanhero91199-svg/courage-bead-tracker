@@ -16,7 +16,7 @@ import { Feather } from "@expo/vector-icons";
 import { useBeadStore } from "@/context/BeadStoreContext";
 import { useColors } from "@/hooks/useColors";
 import { BeadBubble } from "@/components/BeadBubble";
-import { BEAD_PRESETS } from "@/types";
+import { BEAD_PRESETS } from "@/data/beads";
 import { format } from "date-fns";
 
 export default function AddBead() {

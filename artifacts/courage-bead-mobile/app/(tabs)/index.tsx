@@ -18,6 +18,7 @@ import { useBeadStore } from "@/context/BeadStoreContext";
 import { useColors } from "@/hooks/useColors";
 import { BeadBubble } from "@/components/BeadBubble";
 import type { Bead } from "@/types";
+import { isGlowBead } from "@/data/beads";
 
 export default function HomeTab() {
   const { child, beads, clearData } = useBeadStore();
@@ -98,7 +99,7 @@ export default function HomeTab() {
                   }}
                   activeOpacity={0.75}
                 >
-                  <BeadBubble color={bead.color} size={42} isGlow={bead.colorName === "Glow"} />
+                  <BeadBubble color={bead.color} size={42} isGlow={isGlowBead(bead.colorName)} />
                 </TouchableOpacity>
               ))}
               {beads.length > 18 && (
@@ -187,7 +188,7 @@ function BeadDetailModal({
           activeOpacity={1}
         >
           <View style={[styles.modalGradient, { backgroundColor: colors.accent + "50" }]}>
-            <BeadBubble color={bead.color} size={80} isGlow={bead.colorName === "Glow"} />
+            <BeadBubble color={bead.color} size={80} isGlow={isGlowBead(bead.colorName)} />
           </View>
           <View style={styles.modalBody}>
             <Text style={[styles.modalColorName, { color: colors.primary }]}>{bead.colorName} Bead</Text>

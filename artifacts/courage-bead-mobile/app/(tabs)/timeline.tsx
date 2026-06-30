@@ -17,6 +17,7 @@ import { useBeadStore } from "@/context/BeadStoreContext";
 import { useColors } from "@/hooks/useColors";
 import { BeadBubble } from "@/components/BeadBubble";
 import type { Bead, JournalNote } from "@/types";
+import { isGlowBead } from "@/data/beads";
 
 type ListItem =
   | { kind: "month"; key: string; label: string }
@@ -133,7 +134,7 @@ export default function TimelineTab() {
                         }}
                         activeOpacity={0.75}
                       >
-                        <BeadBubble color={b.color} size={44} isGlow={b.colorName === "Glow"} />
+                        <BeadBubble color={b.color} size={44} isGlow={isGlowBead(b.colorName)} />
                         <View style={styles.beadText}>
                           <Text style={[styles.beadReason, { color: colors.foreground }]} numberOfLines={1}>{b.reason}</Text>
                           <Text style={[styles.beadDate, { color: colors.mutedForeground }]}>{dateStr}</Text>
@@ -158,7 +159,7 @@ export default function TimelineTab() {
                           <Text style={[styles.beadReason, { color: colors.foreground }]} numberOfLines={1}>{b.reason}</Text>
                           <Text style={[styles.beadDate, { color: colors.mutedForeground }]}>{dateStr}</Text>
                         </View>
-                        <BeadBubble color={b.color} size={44} isGlow={b.colorName === "Glow"} />
+                        <BeadBubble color={b.color} size={44} isGlow={isGlowBead(b.colorName)} />
                       </TouchableOpacity>
                     </>
                   )}
@@ -235,7 +236,7 @@ function BeadModal({ bead, onClose, colors }: { bead: Bead | null; onClose: () =
       <TouchableOpacity style={styles.overlay} activeOpacity={1} onPress={onClose}>
         <TouchableOpacity activeOpacity={1} style={[styles.sheet, { backgroundColor: colors.card }]}>
           <View style={[styles.sheetGrad, { backgroundColor: colors.accent + "50" }]}>
-            <BeadBubble color={bead.color} size={72} isGlow={bead.colorName === "Glow"} />
+            <BeadBubble color={bead.color} size={72} isGlow={isGlowBead(bead.colorName)} />
           </View>
           <View style={styles.sheetBody}>
             <Text style={[styles.sheetTag, { color: colors.primary }]}>{bead.colorName}</Text>

@@ -8,6 +8,7 @@ import { useBeadStore } from "@/context/BeadStoreContext";
 import { useColors } from "@/hooks/useColors";
 import { BeadBubble } from "@/components/BeadBubble";
 import type { Bead } from "@/types";
+import { isGlowBead } from "@/data/beads";
 
 type MonthGroup = {
   key: string;
@@ -96,7 +97,7 @@ export default function Recap() {
                 <View style={styles.beadPreviewRow}>
                   {item.beads.slice(0, 6).map((b, i) => (
                     <View key={i} style={{ marginLeft: i > 0 ? -8 : 0, zIndex: 10 - i }}>
-                      <BeadBubble color={b.color} size={28} isGlow={b.colorName === "Glow"} />
+                      <BeadBubble color={b.color} size={28} isGlow={isGlowBead(b.colorName)} />
                     </View>
                   ))}
                   {item.beads.length > 6 && (

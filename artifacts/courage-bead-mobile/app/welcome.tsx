@@ -15,7 +15,7 @@ import * as Haptics from "expo-haptics";
 import { useBeadStore } from "@/context/BeadStoreContext";
 import { useColors } from "@/hooks/useColors";
 import { BeadBubble } from "@/components/BeadBubble";
-import { BEAD_PRESETS } from "@/types";
+import { BEAD_PRESETS } from "@/data/beads";
 
 export default function Welcome() {
   const [name, setName] = useState("");
