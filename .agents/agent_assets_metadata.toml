@@ -6,3 +6,9 @@ id = "Vov04A7YqKdhgwyGUwM9I"
 uri = "file://attached_assets/generated_images/courage-bead-app-icon.png"
 type = "image"
 title = "generated_image"
+
+[[generated]]
+id = "l1sudnJ-J_83EJb4Mpz6g"
+uri = "file://artifacts/courage-bead-mobile/assets/images/icon.png"
+type = "image"
+title = "courage beads app icon"

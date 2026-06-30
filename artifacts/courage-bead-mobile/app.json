@@ -1,0 +1,49 @@
+{
+  "expo": {
+    "name": "Courage Bead Tracker",
+    "slug": "courage-bead-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "couragebeads",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/images/icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#FFFAEB"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.couragebeads.tracker",
+      "infoPlist": {
+        "NSPrivacyAccessedAPITypes": []
+      }
+    },
+    "android": {
+      "package": "com.couragebeads.tracker",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/icon.png",
+        "backgroundColor": "#FFFAEB"
+      }
+    },
+    "web": {
+      "favicon": "./assets/images/icon.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      [
+        "expo-router",
+        {
+          "origin": "https://replit.com/"
+        }
+      ],
+      "expo-font",
+      "expo-web-browser"
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    }
+  }
+}
