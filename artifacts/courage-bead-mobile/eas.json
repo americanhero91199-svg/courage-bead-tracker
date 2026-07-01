@@ -6,7 +6,8 @@
     "production": {
       "android": {
         "buildType": "app-bundle"
-      }
+      },
+      "node": "22.0.0"
     }
   }
 }
