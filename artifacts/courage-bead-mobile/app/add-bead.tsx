@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import {
   Alert,
+  Modal,
   Platform,
   ScrollView,
   StyleSheet,
@@ -9,6 +10,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import { router, useLocalSearchParams } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
@@ -17,7 +19,15 @@ import { useBeadStore } from "@/context/BeadStoreContext";
 import { useColors } from "@/hooks/useColors";
 import { BeadBubble } from "@/components/BeadBubble";
 import { useBeadDefinitions } from "@/context/BeadDefinitionsContext";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
+
+function parseDateString(s: string): Date {
+  try {
+    const d = parseISO(s);
+    if (!isNaN(d.getTime())) return d;
+  } catch {}
+  return new Date();
+}
 
 export default function AddBead() {
   const { id } = useLocalSearchParams<{ id?: string }>();
@@ -32,6 +42,7 @@ export default function AddBead() {
   const [customReason, setCustomReason] = useState("");
   const [notes, setNotes] = useState("");
   const [earnedAt, setEarnedAt] = useState(format(new Date(), "yyyy-MM-dd"));
+  const [showPicker, setShowPicker] = useState(false);
 
   useEffect(() => {
     if (editingBead) {
@@ -44,6 +55,16 @@ export default function AddBead() {
   }, []);
 
   const preset = BEAD_PRESETS[selectedPreset];
+  const selectedDate = parseDateString(earnedAt);
+
+  function handleDateChange(_: unknown, date?: Date) {
+    if (Platform.OS === "android") {
+      setShowPicker(false);
+    }
+    if (date) {
+      setEarnedAt(format(date, "yyyy-MM-dd"));
+    }
+  }
 
   function handleSave() {
     const reason = customReason.trim() || preset.reason;
@@ -86,6 +107,8 @@ export default function AddBead() {
 
   const topPad = Platform.OS === "web" ? 67 : insets.top;
   const botPad = Platform.OS === "web" ? 34 : insets.bottom;
+
+  const formattedDisplayDate = format(selectedDate, "MMMM d, yyyy");
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
@@ -170,17 +193,84 @@ export default function AddBead() {
         />
 
         <Text style={[styles.sectionLabel, { color: colors.mutedForeground }]}>Date Earned</Text>
-        <TextInput
-          style={[
-            styles.textInput,
-            { color: colors.foreground, backgroundColor: colors.card, borderColor: colors.border },
-          ]}
-          placeholder="YYYY-MM-DD"
-          placeholderTextColor={colors.mutedForeground}
-          value={earnedAt}
-          onChangeText={setEarnedAt}
-          keyboardType="numbers-and-punctuation"
-        />
+
+        {Platform.OS === "web" ? (
+          <TextInput
+            style={[
+              styles.textInput,
+              { color: colors.foreground, backgroundColor: colors.card, borderColor: colors.border },
+            ]}
+            placeholder="YYYY-MM-DD"
+            placeholderTextColor={colors.mutedForeground}
+            value={earnedAt}
+            onChangeText={setEarnedAt}
+            keyboardType="numbers-and-punctuation"
+          />
+        ) : (
+          <>
+            <TouchableOpacity
+              style={[styles.dateButton, { backgroundColor: colors.card, borderColor: colors.border }]}
+              onPress={() => {
+                Haptics.selectionAsync();
+                setShowPicker(true);
+              }}
+              activeOpacity={0.7}
+            >
+              <Feather name="calendar" size={18} color={colors.primary} />
+              <Text style={[styles.dateButtonText, { color: colors.foreground }]}>
+                {formattedDisplayDate}
+              </Text>
+              <Feather name="chevron-down" size={16} color={colors.mutedForeground} />
+            </TouchableOpacity>
+
+            {/* iOS: modal sheet with inline calendar */}
+            {Platform.OS === "ios" && (
+              <Modal
+                visible={showPicker}
+                transparent
+                animationType="slide"
+                onRequestClose={() => setShowPicker(false)}
+              >
+                <TouchableOpacity
+                  style={styles.modalBackdrop}
+                  activeOpacity={1}
+                  onPress={() => setShowPicker(false)}
+                />
+                <View style={[styles.pickerSheet, { backgroundColor: colors.card, paddingBottom: botPad + 16 }]}>
+                  <View style={[styles.pickerHeader, { borderBottomColor: colors.border }]}>
+                    <Text style={[styles.pickerTitle, { color: colors.foreground }]}>Select Date</Text>
+                    <TouchableOpacity
+                      onPress={() => setShowPicker(false)}
+                      style={[styles.pickerDoneBtn, { backgroundColor: colors.primary }]}
+                    >
+                      <Text style={styles.pickerDoneText}>Done</Text>
+                    </TouchableOpacity>
+                  </View>
+                  <DateTimePicker
+                    value={selectedDate}
+                    mode="date"
+                    display="inline"
+                    maximumDate={new Date()}
+                    onChange={handleDateChange}
+                    style={styles.picker}
+                    accentColor={colors.primary}
+                  />
+                </View>
+              </Modal>
+            )}
+
+            {/* Android: shows inline directly */}
+            {Platform.OS === "android" && showPicker && (
+              <DateTimePicker
+                value={selectedDate}
+                mode="date"
+                display="calendar"
+                maximumDate={new Date()}
+                onChange={handleDateChange}
+              />
+            )}
+          </>
+        )}
 
         <Text style={[styles.sectionLabel, { color: colors.mutedForeground }]}>Notes (optional)</Text>
         <TextInput
@@ -249,11 +339,7 @@ const styles = StyleSheet.create({
     marginTop: 16,
     marginBottom: 4,
   },
-  presetGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-  },
+  presetGrid: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   presetItem: {
     alignItems: "center",
     justifyContent: "center",
@@ -264,11 +350,7 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     minWidth: 64,
   },
-  presetItemLabel: {
-    fontSize: 10,
-    fontWeight: "600",
-    fontFamily: "Inter_600SemiBold",
-  },
+  presetItemLabel: { fontSize: 10, fontWeight: "600", fontFamily: "Inter_600SemiBold" },
   textInput: {
     borderWidth: 1,
     borderRadius: 14,
@@ -277,11 +359,45 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_400Regular",
   },
   textArea: { minHeight: 100 },
-  footer: {
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    borderTopWidth: 1,
+  dateButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    borderWidth: 1,
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 14,
   },
+  dateButtonText: { flex: 1, fontSize: 16, fontFamily: "Inter_400Regular" },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.35)",
+  },
+  pickerSheet: {
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+  },
+  pickerHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+  },
+  pickerTitle: { fontSize: 17, fontWeight: "700", fontFamily: "Inter_700Bold" },
+  pickerDoneBtn: {
+    paddingHorizontal: 18,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
+  pickerDoneText: { color: "#FFF", fontSize: 15, fontWeight: "600", fontFamily: "Inter_600SemiBold" },
+  picker: { width: "100%" },
+  footer: { paddingHorizontal: 20, paddingTop: 16, borderTopWidth: 1 },
   saveBtn: {
     flexDirection: "row",
     alignItems: "center",
@@ -290,10 +406,5 @@ const styles = StyleSheet.create({
     height: 56,
     borderRadius: 18,
   },
-  saveBtnText: {
-    color: "#FFF",
-    fontSize: 17,
-    fontWeight: "700",
-    fontFamily: "Inter_700Bold",
-  },
+  saveBtnText: { color: "#FFF", fontSize: 17, fontWeight: "700", fontFamily: "Inter_700Bold" },
 });
