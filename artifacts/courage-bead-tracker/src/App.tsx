@@ -12,6 +12,7 @@ import BeadsList from "@/pages/beads-list";
 import Summary from "@/pages/summary";
 import Timeline from "@/pages/timeline";
 import Recap from "@/pages/recap";
+import Support from "@/pages/support";
 
 const queryClient = new QueryClient();
 
@@ -47,7 +48,10 @@ function App() {
       <TooltipProvider>
         <BeadStoreProvider>
           <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-            <ProtectedRouter />
+            <Switch>
+              <Route path="/support" component={Support} />
+              <Route component={ProtectedRouter} />
+            </Switch>
           </WouterRouter>
           <Toaster />
         </BeadStoreProvider>
