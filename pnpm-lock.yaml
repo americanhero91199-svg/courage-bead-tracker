@@ -222,11 +222,11 @@ importers:
         specifier: ^3.6.0
         version: 3.6.0
       expo-document-picker:
-        specifier: ^57.0.0
-        version: 57.0.0(expo@54.0.35)
+        specifier: ~14.0.8
+        version: 14.0.8(expo@54.0.35)
       expo-print:
-        specifier: ^57.0.0
-        version: 57.0.0(expo@54.0.35)(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0))
+        specifier: ~15.0.8
+        version: 15.0.8(expo@54.0.35)(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0))
     devDependencies:
       '@babel/core':
         specifier: ^7.25.2
@@ -4066,8 +4066,8 @@ packages:
       expo: '*'
       react-native: '*'
 
-  expo-document-picker@57.0.0:
-    resolution: {integrity: sha512-foT1pA3tD7KvcqXwjQBh4qEDjHT9U9MhZ6H2aF38VolCiHRhXDQLtKQqCeXjbHxJhSf8HC/YPV3IRxDxFTL2sA==}
+  expo-document-picker@14.0.8:
+    resolution: {integrity: sha512-3tyQKpPqWWFlI8p9RiMX1+T1Zge5mEKeBuXWp1h8PEItFMUDSiOJbQ112sfdC6Hxt8wSxreV9bCRl/NgBdt+fA==}
     peerDependencies:
       expo: '*'
 
@@ -4146,8 +4146,8 @@ packages:
       react: '*'
       react-native: '*'
 
-  expo-print@57.0.0:
-    resolution: {integrity: sha512-RgZCt1up7/jB1i9DpriiStjEYpJrQlw8rIICHfs/7WUNOA2sq3CEJu0knRHZwITo3/+L3c1Pfgh5S6i5eh0OMg==}
+  expo-print@15.0.8:
+    resolution: {integrity: sha512-4O0Qzm0On5AmJIl9d+BT+ieTipFp658nHI4aX7vKEFPfj3dfQxG6rDJJpca+rrc9c4Ha8ZFYGvxJG5+4lFq2Pw==}
     peerDependencies:
       expo: '*'
       react-native: '*'
@@ -11137,7 +11137,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  expo-document-picker@57.0.0(expo@54.0.35):
+  expo-document-picker@14.0.8(expo@54.0.35):
     dependencies:
       expo: 54.0.35(@babel/core@7.29.0)(@expo/metro-runtime@6.1.2)(expo-router@6.0.24)(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)(typescript@5.9.3)
 
@@ -11215,7 +11215,7 @@ snapshots:
       react: 19.1.0
       react-native: 0.81.5(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0)
 
-  expo-print@57.0.0(expo@54.0.35)(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0)):
+  expo-print@15.0.8(expo@54.0.35)(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0)):
     dependencies:
       expo: 54.0.35(@babel/core@7.29.0)(@expo/metro-runtime@6.1.2)(expo-router@6.0.24)(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)(typescript@5.9.3)
       react-native: 0.81.5(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0)
