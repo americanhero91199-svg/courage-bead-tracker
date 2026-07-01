@@ -16,6 +16,7 @@ import {
   ArrowUp,
   Calendar,
   Edit2,
+  Printer,
   Sparkles,
   BookHeart,
   Plus,
@@ -55,8 +56,11 @@ type Entry =
   | { kind: "note"; note: JournalNote; date: number };
 
 export default function Timeline() {
-  const { beads, notes } = useBeadStore();
+  const { beads, notes, child } = useBeadStore();
   const [, setLocation] = useLocation();
+
+  const handlePrint = () => { window.print(); };
+
   const [selectedBead, setSelectedBead] = useState<Bead | null>(null);
   const [activeNote, setActiveNote] = useState<JournalNote | null>(null);
   const [editingNote, setEditingNote] = useState<JournalNote | null>(null);
@@ -159,6 +163,33 @@ export default function Timeline() {
     return d;
   }, [beadPoints]);
 
+  const dateRange = useMemo(() => {
+    if (entries.length === 0) return null;
+    const first = entries[0];
+    const last = entries[entries.length - 1];
+    const firstDate = first.kind === "bead" ? parseISO(first.bead.earnedAt) : parseISO(first.note.date);
+    const lastDate = last.kind === "bead" ? parseISO(last.bead.earnedAt) : parseISO(last.note.date);
+    if (firstDate.getFullYear() === lastDate.getFullYear() && firstDate.getMonth() === lastDate.getMonth()) {
+      return format(firstDate, "MMMM yyyy");
+    }
+    return `${format(firstDate, "MMM yyyy")} – ${format(lastDate, "MMM yyyy")}`;
+  }, [entries]);
+
+  const printGroups = useMemo(() => {
+    const groups: { label: string; entries: Entry[] }[] = [];
+    let lastKey = "";
+    for (const entry of entries) {
+      const dateStr = entry.kind === "bead" ? entry.bead.earnedAt : entry.note.date;
+      const key = format(parseISO(dateStr), "MMMM yyyy");
+      if (key !== lastKey) {
+        groups.push({ label: key, entries: [] });
+        lastKey = key;
+      }
+      groups[groups.length - 1].entries.push(entry);
+    }
+    return groups;
+  }, [entries]);
+
   useEffect(() => {
     const main = document.querySelector("main");
     if (!main) return;
@@ -179,7 +210,7 @@ export default function Timeline() {
   return (
     <Layout>
       <div
-        className="relative min-h-full"
+        className="relative min-h-full print:hidden"
         style={{
           background:
             "linear-gradient(180deg, #FFF8E5 0%, #FFEFD9 35%, #FFE3E2 70%, #FFD6E2 100%)",
@@ -204,15 +235,27 @@ export default function Timeline() {
               Beads and reflections, in order.
             </p>
           </div>
-          <Button
-            size="sm"
-            onClick={() => setIsCreatingNote(true)}
-            className="rounded-full h-10 px-4 shrink-0 shadow-md shadow-primary/20"
-            data-testid="add-note-button"
-          >
-            <Plus className="w-4 h-4 mr-1" />
-            Note
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handlePrint}
+              className="rounded-full h-10 px-4 shrink-0"
+              title="Print Timeline"
+            >
+              <Printer className="w-4 h-4 mr-1" />
+              Print
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => setIsCreatingNote(true)}
+              className="rounded-full h-10 px-4 shrink-0 shadow-md shadow-primary/20"
+              data-testid="add-note-button"
+            >
+              <Plus className="w-4 h-4 mr-1" />
+              Note
+            </Button>
+          </div>
         </div>
 
         {isEmpty ? (
@@ -330,6 +373,85 @@ export default function Timeline() {
             </motion.button>
           )}
         </AnimatePresence>
+      </div>
+
+      {/* ── Keepsake Print View (hidden on screen, shown only when printing) ── */}
+      <div
+        className="hidden print:block"
+        style={{ fontFamily: "Georgia, 'Times New Roman', serif", color: "#1a1a1a", padding: "0" }}
+      >
+        {/* Header */}
+        <div style={{ textAlign: "center", borderBottom: "2px solid #ED5773", paddingBottom: "28px", marginBottom: "36px" }}>
+          <div style={{ fontSize: "13px", letterSpacing: "4px", textTransform: "uppercase", color: "#ED5773", fontFamily: "Helvetica Neue, Arial, sans-serif", marginBottom: "10px" }}>✦ Courage Bead Tracker ✦</div>
+          <div style={{ fontSize: "30px", fontWeight: "bold", color: "#1a1a1a", marginBottom: "6px" }}>Courage Bead Timeline</div>
+          {child?.name && (
+            <div style={{ fontSize: "20px", color: "#ED5773", marginBottom: "4px" }}>{child.name}'s Journey of Courage</div>
+          )}
+          {dateRange && (
+            <div style={{ fontSize: "14px", color: "#888", fontFamily: "Helvetica Neue, Arial, sans-serif", marginTop: "4px" }}>{dateRange}</div>
+          )}
+          <div style={{ fontSize: "13px", color: "#aaa", fontFamily: "Helvetica Neue, Arial, sans-serif", marginTop: "6px" }}>
+            {beads.length} bead{beads.length !== 1 ? "s" : ""} earned
+            {notes.length > 0 ? ` · ${notes.length} reflection${notes.length !== 1 ? "s" : ""} recorded` : ""}
+          </div>
+        </div>
+
+        {/* Entries by month */}
+        {printGroups.map((group) => (
+          <div key={group.label} style={{ marginBottom: "28px" }}>
+            <div style={{
+              fontSize: "10px", fontWeight: "bold", textTransform: "uppercase",
+              letterSpacing: "3px", color: "#ED5773",
+              fontFamily: "Helvetica Neue, Arial, sans-serif",
+              borderBottom: "1px solid #FBD0DA", paddingBottom: "6px", marginBottom: "14px",
+            }}>
+              {group.label}
+            </div>
+            {group.entries.map((entry) =>
+              entry.kind === "bead" ? (
+                <div key={entry.bead.id} style={{ display: "flex", alignItems: "flex-start", gap: "14px", marginBottom: "16px", pageBreakInside: "avoid" }}>
+                  <div style={{
+                    width: "22px", height: "22px", borderRadius: "50%",
+                    backgroundColor: entry.bead.color, flexShrink: 0,
+                    marginTop: "3px", border: "1px solid rgba(0,0,0,0.12)",
+                  }} />
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: "15px", fontWeight: "bold", color: "#1a1a1a", lineHeight: "1.3" }}>{entry.bead.reason}</div>
+                    <div style={{ fontSize: "12px", color: "#ED5773", fontFamily: "Helvetica Neue, Arial, sans-serif", marginTop: "2px" }}>
+                      {entry.bead.colorName} Bead · {format(parseISO(entry.bead.earnedAt), "MMMM d, yyyy")}
+                    </div>
+                    {entry.bead.notes && (
+                      <div style={{ fontSize: "13px", fontStyle: "italic", color: "#555", marginTop: "4px", lineHeight: "1.5" }}>"{entry.bead.notes}"</div>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div key={entry.note.id} style={{ display: "flex", alignItems: "flex-start", gap: "14px", marginBottom: "16px", pageBreakInside: "avoid" }}>
+                  <div style={{
+                    width: "22px", height: "22px", borderRadius: "5px",
+                    backgroundColor: "#FBD0DA", flexShrink: 0,
+                    marginTop: "3px", display: "flex", alignItems: "center",
+                    justifyContent: "center", fontSize: "12px", color: "#ED5773",
+                  }}>✏</div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: "12px", fontWeight: "bold", color: "#ED5773", fontFamily: "Helvetica Neue, Arial, sans-serif" }}>
+                      Reflection · {format(parseISO(entry.note.date), "MMMM d, yyyy")}
+                    </div>
+                    <div style={{ fontSize: "13px", color: "#333", marginTop: "3px", lineHeight: "1.6", whiteSpace: "pre-wrap" }}>{entry.note.text}</div>
+                  </div>
+                </div>
+              )
+            )}
+          </div>
+        ))}
+
+        {/* Footer */}
+        <div style={{ marginTop: "48px", borderTop: "1px solid #FBD0DA", paddingTop: "18px", textAlign: "center" }}>
+          <div style={{ fontSize: "14px", fontStyle: "italic", color: "#888" }}>Every bead tells a story of courage and love. 💙</div>
+          <div style={{ fontSize: "11px", color: "#bbb", marginTop: "6px", fontFamily: "Helvetica Neue, Arial, sans-serif" }}>
+            Printed {format(new Date(), "MMMM d, yyyy")} · Courage Bead Tracker
+          </div>
+        </div>
       </div>
 
       <BeadDetailDialog

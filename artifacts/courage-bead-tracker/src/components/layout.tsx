@@ -23,7 +23,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <div className="w-full max-w-[420px] bg-card flex flex-col relative shadow-2xl shadow-black/5 overflow-hidden">
         
         {/* Header */}
-        <header className="h-16 flex items-center justify-between px-6 shrink-0 relative z-10">
+        <header className="h-16 flex items-center justify-between px-6 shrink-0 relative z-10 print:hidden">
           <div className="font-display font-bold text-xl text-primary tracking-tight">
             Courage Beads
           </div>
@@ -42,7 +42,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         </main>
 
         {/* Bottom Nav */}
-        <nav className="absolute bottom-0 left-0 right-0 h-20 bg-card border-t border-border/50 flex items-center justify-around px-6 z-20 pb-safe">
+        <nav className="absolute bottom-0 left-0 right-0 h-20 bg-card border-t border-border/50 flex items-center justify-around px-6 z-20 pb-safe print:hidden">
           <NavItem href="/" icon={<Home className="w-6 h-6" />} label="Home" isActive={location === "/"} />
           <div className="-mt-8">
             <Link href="/add">

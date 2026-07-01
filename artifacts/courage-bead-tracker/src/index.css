@@ -288,3 +288,45 @@
     inset: -1px;
   }
 }
+
+/* ── Print / Keepsake styles ───────────────────────────────────────────────── */
+@media print {
+  @page { size: letter portrait; margin: 0.75in; }
+
+  /* Ensure bead colors & backgrounds print */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* App shell is handled by print:hidden Tailwind class on header/nav */
+  /* Layout overrides — unwrap the mobile-width container for letter paper */
+  body,
+  #root { background: white !important; }
+
+  .min-h-\[100dvh\] {
+    min-height: auto !important;
+    display: block !important;
+  }
+
+  /* Remove the max-width mobile shell and its overflow clipping */
+  .max-w-\[420px\] {
+    max-width: 100% !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+    height: auto !important;
+  }
+
+  /* The scrollable main area must expand to full height for print */
+  main {
+    overflow: visible !important;
+    height: auto !important;
+    max-height: none !important;
+    padding-bottom: 0 !important;
+    flex: none !important;
+    position: static !important;
+  }
+
+  /* Fixed/absolute positioned elements that shouldn't print */
+  .fixed { display: none !important; }
+}

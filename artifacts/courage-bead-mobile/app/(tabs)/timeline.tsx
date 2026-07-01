@@ -1,5 +1,6 @@
-import React, { useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import {
+  Alert,
   FlatList,
   Modal,
   Platform,
@@ -11,6 +12,7 @@ import {
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
+import * as Print from "expo-print";
 import { Feather } from "@expo/vector-icons";
 import { format, parseISO } from "date-fns";
 import { useBeadStore } from "@/context/BeadStoreContext";
@@ -24,14 +26,139 @@ type ListItem =
   | { kind: "bead"; key: string; bead: Bead; side: "left" | "right" }
   | { kind: "note"; key: string; note: JournalNote; side: "left" | "right" };
 
+type PrintEntry = { kind: "bead"; bead: Bead } | { kind: "note"; note: JournalNote };
+
+function buildPrintHtml(
+  childName: string | undefined,
+  beads: Bead[],
+  notes: JournalNote[],
+  entries: PrintEntry[]
+): string {
+  // Group entries by month
+  const groups: { label: string; items: typeof entries }[] = [];
+  let lastKey = "";
+  for (const entry of entries) {
+    const dateStr = entry.kind === "bead" ? entry.bead.earnedAt : entry.note.date;
+    const key = format(parseISO(dateStr), "MMMM yyyy");
+    if (key !== lastKey) {
+      groups.push({ label: key, items: [] });
+      lastKey = key;
+    }
+    groups[groups.length - 1].items.push(entry);
+  }
+
+  const firstEntry = entries[0];
+  const lastEntry = entries[entries.length - 1];
+  let dateRange = "";
+  if (firstEntry && lastEntry) {
+    const firstDate = firstEntry.kind === "bead" ? parseISO(firstEntry.bead.earnedAt) : parseISO(firstEntry.note.date);
+    const lastDate = lastEntry.kind === "bead" ? parseISO(lastEntry.bead.earnedAt) : parseISO(lastEntry.note.date);
+    if (firstDate.getFullYear() === lastDate.getFullYear() && firstDate.getMonth() === lastDate.getMonth()) {
+      dateRange = format(firstDate, "MMMM yyyy");
+    } else {
+      dateRange = `${format(firstDate, "MMM yyyy")} – ${format(lastDate, "MMM yyyy")}`;
+    }
+  }
+
+  const groupsHtml = groups.map(({ label, items }) => {
+    const rowsHtml = items.map((entry) => {
+      if (entry.kind === "bead") {
+        const b = entry.bead;
+        const dateStr = format(parseISO(b.earnedAt), "MMMM d, yyyy");
+        return `
+          <div style="display:flex;align-items:flex-start;gap:14px;margin-bottom:16px;page-break-inside:avoid;">
+            <div style="width:22px;height:22px;border-radius:50%;background-color:${b.color};flex-shrink:0;margin-top:3px;border:1px solid rgba(0,0,0,0.12);"></div>
+            <div style="flex:1;">
+              <div style="font-size:15px;font-weight:bold;color:#1a1a1a;line-height:1.3;">${b.reason.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</div>
+              <div style="font-size:12px;color:#ED5773;font-family:Helvetica Neue,Arial,sans-serif;margin-top:2px;">${b.colorName} Bead · ${dateStr}</div>
+              ${b.notes ? `<div style="font-size:13px;font-style:italic;color:#555;margin-top:4px;line-height:1.5;">"${b.notes.replace(/</g, "&lt;").replace(/>/g, "&gt;")}"</div>` : ""}
+            </div>
+          </div>`;
+      } else {
+        const n = entry.note;
+        const dateStr = format(parseISO(n.date), "MMMM d, yyyy");
+        return `
+          <div style="display:flex;align-items:flex-start;gap:14px;margin-bottom:16px;page-break-inside:avoid;">
+            <div style="width:22px;height:22px;border-radius:5px;background-color:#FBD0DA;flex-shrink:0;margin-top:3px;display:flex;align-items:center;justify-content:center;font-size:13px;color:#ED5773;text-align:center;line-height:22px;">✏</div>
+            <div style="flex:1;">
+              <div style="font-size:12px;font-weight:bold;color:#ED5773;font-family:Helvetica Neue,Arial,sans-serif;">Reflection · ${dateStr}</div>
+              <div style="font-size:13px;color:#333;margin-top:3px;line-height:1.6;">${n.text.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br>")}</div>
+            </div>
+          </div>`;
+      }
+    }).join("");
+    return `
+      <div style="margin-bottom:28px;">
+        <div style="font-size:10px;font-weight:bold;text-transform:uppercase;letter-spacing:3px;color:#ED5773;font-family:Helvetica Neue,Arial,sans-serif;border-bottom:1px solid #FBD0DA;padding-bottom:6px;margin-bottom:14px;">${label}</div>
+        ${rowsHtml}
+      </div>`;
+  }).join("");
+
+  const beadCount = beads.length;
+  const noteCount = notes.length;
+  const countLine = `${beadCount} bead${beadCount !== 1 ? "s" : ""} earned${noteCount > 0 ? ` · ${noteCount} reflection${noteCount !== 1 ? "s" : ""} recorded` : ""}`;
+  const today = format(new Date(), "MMMM d, yyyy");
+
+  return `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Courage Bead Timeline</title>
+  <style>
+    @page { size: letter portrait; margin: 0.75in; }
+    * { -webkit-print-color-adjust: exact; print-color-adjust: exact; box-sizing: border-box; }
+    body { font-family: Georgia, 'Times New Roman', serif; color: #1a1a1a; background: white; margin: 0; line-height: 1.5; }
+    .header { text-align: center; border-bottom: 2px solid #ED5773; padding-bottom: 28px; margin-bottom: 36px; }
+    .footer { margin-top: 48px; border-top: 1px solid #FBD0DA; padding-top: 18px; text-align: center; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div style="font-size:13px;letter-spacing:4px;text-transform:uppercase;color:#ED5773;font-family:Helvetica Neue,Arial,sans-serif;margin-bottom:10px;">✦ Courage Bead Tracker ✦</div>
+    <div style="font-size:30px;font-weight:bold;color:#1a1a1a;margin-bottom:6px;">Courage Bead Timeline</div>
+    ${childName ? `<div style="font-size:20px;color:#ED5773;margin-bottom:4px;">${childName}'s Journey of Courage</div>` : ""}
+    ${dateRange ? `<div style="font-size:14px;color:#888;font-family:Helvetica Neue,Arial,sans-serif;margin-top:4px;">${dateRange}</div>` : ""}
+    <div style="font-size:13px;color:#aaa;font-family:Helvetica Neue,Arial,sans-serif;margin-top:6px;">${countLine}</div>
+  </div>
+  ${groupsHtml}
+  <div class="footer">
+    <div style="font-size:14px;font-style:italic;color:#888;">Every bead tells a story of courage and love. 💙</div>
+    <div style="font-size:11px;color:#bbb;margin-top:6px;font-family:Helvetica Neue,Arial,sans-serif;">Printed ${today} · Courage Bead Tracker</div>
+  </div>
+</body>
+</html>`;
+}
+
 export default function TimelineTab() {
-  const { beads, notes } = useBeadStore();
+  const { beads, notes, child } = useBeadStore();
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const [selectedBead, setSelectedBead] = useState<Bead | null>(null);
   const [selectedNote, setSelectedNote] = useState<JournalNote | null>(null);
 
   const topPad = Platform.OS === "web" ? 67 : insets.top;
+
+  const handlePrint = useCallback(async () => {
+    if (beads.length === 0 && notes.length === 0) {
+      Alert.alert("Nothing to Print", "Add some beads or reflections to the timeline first.");
+      return;
+    }
+    try {
+      const sortedEntries: PrintEntry[] = [
+        ...beads.map((b) => ({ kind: "bead" as const, bead: b })),
+        ...notes.map((n) => ({ kind: "note" as const, note: n })),
+      ].sort((a, b) => {
+        const aTime = a.kind === "bead" ? new Date(a.bead.earnedAt).getTime() : new Date(a.note.date).getTime();
+        const bTime = b.kind === "bead" ? new Date(b.bead.earnedAt).getTime() : new Date(b.note.date).getTime();
+        return aTime - bTime;
+      });
+      const html = buildPrintHtml(child?.name, beads, notes, sortedEntries);
+      await Print.printAsync({ html });
+    } catch {
+      Alert.alert("Print Failed", "Could not open the print dialog. Please try again.");
+    }
+  }, [beads, notes, child]);
 
   const listItems: ListItem[] = useMemo(() => {
     const combined: ({ kind: "bead"; bead: Bead; date: number } | { kind: "note"; note: JournalNote; date: number })[] =
@@ -73,13 +200,22 @@ export default function TimelineTab() {
             Beads and reflections, in order
           </Text>
         </View>
-        <TouchableOpacity
-          style={[styles.addNoteBtn, { backgroundColor: colors.primary }]}
-          onPress={() => router.push("/journal")}
-          activeOpacity={0.8}
-        >
-          <Feather name="edit-3" size={16} color="#FFF" />
-        </TouchableOpacity>
+        <View style={styles.headerBtns}>
+          <TouchableOpacity
+            style={[styles.headerIconBtn, { backgroundColor: colors.card, borderColor: colors.border }]}
+            onPress={handlePrint}
+            activeOpacity={0.8}
+          >
+            <Feather name="printer" size={16} color={colors.primary} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.headerIconBtn, { backgroundColor: colors.primary }]}
+            onPress={() => router.push("/journal")}
+            activeOpacity={0.8}
+          >
+            <Feather name="edit-3" size={16} color="#FFF" />
+          </TouchableOpacity>
+        </View>
       </View>
 
       {isEmpty ? (
@@ -300,6 +436,8 @@ const styles = StyleSheet.create({
   headerTitle: { fontSize: 22, fontWeight: "700", fontFamily: "Inter_700Bold" },
   headerSub: { fontSize: 13, fontFamily: "Inter_400Regular", marginTop: 2 },
   addNoteBtn: { width: 40, height: 40, borderRadius: 14, alignItems: "center", justifyContent: "center" },
+  headerBtns: { flexDirection: "row", alignItems: "center", gap: 8 },
+  headerIconBtn: { width: 40, height: 40, borderRadius: 14, alignItems: "center", justifyContent: "center", borderWidth: 1 },
   list: { paddingHorizontal: 0, paddingTop: 8 },
   monthRow: {
     flexDirection: "row",
