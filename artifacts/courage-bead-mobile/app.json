@@ -46,6 +46,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "a44bdee4-3dc2-4b1d-bde6-9b367ee724fd"
+      }
+    },
+    "owner": "mrutgardloki"
   }
 }
