@@ -1,0 +1,51 @@
+{
+  "expo": {
+    "name": "Courage Bead Tracker",
+    "slug": "courage-bead-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./artifacts/courage-bead-mobile/assets/images/icon.png",
+    "scheme": "couragebeads",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./artifacts/courage-bead-mobile/assets/images/icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#FFFAEB"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.couragebeads.tracker",
+      "buildNumber": "2",
+      "config": {
+        "usesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "package": "com.couragebeads.tracker",
+      "versionCode": 2,
+      "adaptiveIcon": {
+        "foregroundImage": "./artifacts/courage-bead-mobile/assets/images/icon.png",
+        "backgroundColor": "#FFFAEB"
+      }
+    },
+    "web": {
+      "favicon": "./artifacts/courage-bead-mobile/assets/images/icon.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-font",
+      "expo-web-browser"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "eas": {
+        "projectId": "a44bdee4-3dc2-4b1d-bde6-9b367ee724fd"
+      }
+    },
+    "owner": "mrutgardloki"
+  }
+}
