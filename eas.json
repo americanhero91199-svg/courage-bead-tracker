@@ -12,6 +12,7 @@
     },
     "production": {
       "node": "22.0.0",
+      "jdk": "17",
       "ios": {
         "buildConfiguration": "Release"
       },
