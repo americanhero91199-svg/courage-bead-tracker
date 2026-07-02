@@ -12,12 +12,12 @@
     },
     "production": {
       "node": "22.0.0",
-      "image": "latest",
       "ios": {
         "buildConfiguration": "Release"
       },
       "android": {
-        "buildType": "app-bundle"
+        "buildType": "app-bundle",
+        "image": "ubuntu-22.04-jdk-17-ndk-r25b"
       }
     }
   },
