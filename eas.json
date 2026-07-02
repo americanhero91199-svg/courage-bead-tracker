@@ -11,6 +11,10 @@
       "distribution": "internal"
     },
     "production": {
+      "node": "22.0.0",
+      "ios": {
+        "buildConfiguration": "Release"
+      },
       "android": {
         "buildType": "app-bundle"
       }
