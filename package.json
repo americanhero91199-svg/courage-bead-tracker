@@ -10,6 +10,7 @@
     "eas-build-pre-install": "corepack enable && corepack prepare pnpm@10.26.1 --activate"
   },
   "private": true,
+  "main": "expo-router/entry",
   "packageManager": "pnpm@10.26.1",
   "devDependencies": {
     "prettier": "^3.8.1",

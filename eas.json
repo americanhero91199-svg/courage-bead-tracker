@@ -5,16 +5,10 @@
   "build": {
     "development": {
       "developmentClient": true,
-      "distribution": "internal",
-      "env": {
-        "EXPO_PROJECT_ROOT": "artifacts/courage-bead-mobile"
-      }
+      "distribution": "internal"
     },
     "preview": {
-      "distribution": "internal",
-      "env": {
-        "EXPO_PROJECT_ROOT": "artifacts/courage-bead-mobile"
-      }
+      "distribution": "internal"
     },
     "production": {
       "node": "22.0.0",
@@ -23,9 +17,6 @@
       },
       "android": {
         "buildType": "app-bundle"
-      },
-      "env": {
-        "EXPO_PROJECT_ROOT": "artifacts/courage-bead-mobile"
       }
     }
   },
