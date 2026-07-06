@@ -6,7 +6,6 @@ import React, {
   useState,
 } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import * as DocumentPicker from "expo-document-picker";
 import { Platform, Share } from "react-native";
 
 import { z } from "zod";
@@ -242,6 +241,9 @@ export function BeadDefinitionsProvider({
   const pickAndImport = useCallback(async (): Promise<ImportResult> => {
     let fileJson: string;
     try {
+      // Lazy import — requireNativeModule('ExpoDocumentPicker') fires here,
+      // not at app startup, so it never crashes the initial render.
+      const DocumentPicker = await import("expo-document-picker");
       const result = await DocumentPicker.getDocumentAsync({
         type: ["application/json", "public.json", "text/plain"],
         copyToCacheDirectory: true,

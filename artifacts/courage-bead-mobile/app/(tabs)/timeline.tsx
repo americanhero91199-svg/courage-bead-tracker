@@ -12,7 +12,6 @@ import {
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
-import * as Print from "expo-print";
 import { Feather } from "@expo/vector-icons";
 import { format, parseISO } from "date-fns";
 import { useBeadStore } from "@/context/BeadStoreContext";
@@ -154,6 +153,7 @@ export default function TimelineTab() {
         return aTime - bTime;
       });
       const html = buildPrintHtml(child?.name, beads, notes, sortedEntries);
+      const Print = await import("expo-print");
       await Print.printAsync({ html });
     } catch {
       Alert.alert("Print Failed", "Could not open the print dialog. Please try again.");
