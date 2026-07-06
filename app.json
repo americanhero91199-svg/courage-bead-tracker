@@ -7,7 +7,7 @@
     "icon": "./artifacts/courage-bead-mobile/assets/images/icon.png",
     "scheme": "couragebeads",
     "userInterfaceStyle": "light",
-    "newArchEnabled": false,
+    "newArchEnabled": true,
     "splash": {
       "image": "./artifacts/courage-bead-mobile/assets/images/icon.png",
       "resizeMode": "contain",
@@ -23,7 +23,7 @@
     },
     "android": {
       "package": "com.couragebeads.tracker",
-      "versionCode": 9,
+      "versionCode": 10,
       "adaptiveIcon": {
         "foregroundImage": "./artifacts/courage-bead-mobile/assets/images/icon.png",
         "backgroundColor": "#FFFAEB"
