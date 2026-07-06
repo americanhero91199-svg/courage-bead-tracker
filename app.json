@@ -23,7 +23,7 @@
     },
     "android": {
       "package": "com.couragebeads.tracker",
-      "versionCode": 7,
+      "versionCode": 8,
       "adaptiveIcon": {
         "foregroundImage": "./artifacts/courage-bead-mobile/assets/images/icon.png",
         "backgroundColor": "#FFFAEB"
@@ -38,6 +38,8 @@
       "expo-font",
       "expo-web-browser",
       "expo-document-picker",
+      "expo-image-picker",
+      "expo-system-ui",
       "@react-native-community/datetimepicker"
     ],
     "experiments": {
