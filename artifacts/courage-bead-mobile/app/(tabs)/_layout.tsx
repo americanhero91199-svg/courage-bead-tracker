@@ -1,21 +1,36 @@
-import { BlurView } from "expo-blur";
 import { Tabs } from "expo-router";
 import { Feather } from "@expo/vector-icons";
 import React from "react";
 import { Platform, StyleSheet, View, useColorScheme } from "react-native";
 import { useColors } from "@/hooks/useColors";
 
-// ─── expo-symbols (iOS-only) ──────────────────────────────────────────────────
-// expo-symbols wraps Apple SF Symbols and has NO Android native module.
-// A static `import { SymbolView } from "expo-symbols"` crashes on Android with
-// JavascriptException when requireNativeModule('ExpoSymbols') is called at
-// module evaluation time (before any component renders).
-// Lazy conditional require: Android evaluates to null; iOS loads the module.
+// ─── iOS-only modules — lazy conditional require ──────────────────────────────
+//
+// Both expo-blur and expo-symbols call requireNativeViewManager /
+// requireNativeModule at module-evaluation time (not inside a function).
+// On Android, neither native view is registered, so the call throws a
+// JavascriptException before any component renders.
+//
+// Static `import` statements are evaluated unconditionally on every platform
+// even when the JSX is guarded with `isIOS`. The fix: only require() these
+// modules when Platform.OS === "ios" so Android never touches them.
+//
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const BlurView: any =
+  Platform.OS === "ios" ? require("expo-blur").BlurView : null;
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const SymbolView: any =
   Platform.OS === "ios" ? require("expo-symbols").SymbolView : null;
 
-console.log("BEADS [7] (tabs)/_layout module evaluated — Platform.OS:", Platform.OS);
+console.log(
+  "BEADS [7] (tabs)/_layout evaluated — Platform.OS:",
+  Platform.OS,
+  "BlurView loaded:",
+  BlurView !== null,
+  "SymbolView loaded:",
+  SymbolView !== null
+);
 
 export default function TabLayout() {
   console.log("BEADS [8] TabLayout rendering");
