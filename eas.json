@@ -10,6 +10,17 @@
     "preview": {
       "distribution": "internal"
     },
+    "apk": {
+      "node": "22.0.0",
+      "distribution": "internal",
+      "ios": {
+        "buildConfiguration": "Release"
+      },
+      "android": {
+        "buildType": "apk",
+        "image": "ubuntu-22.04-jdk-17-ndk-r25b"
+      }
+    },
     "production": {
       "node": "22.0.0",
       "ios": {
