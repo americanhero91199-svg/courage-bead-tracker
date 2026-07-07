@@ -18,6 +18,16 @@ import { BeadDefinitionsProvider } from "@/context/BeadDefinitionsContext";
 
 SplashScreen.preventAutoHideAsync();
 
+// Global JS error handler — captures the real exception message before
+// ExceptionsManagerModule wraps it. Visible in adb logcat as LOG tags.
+if (typeof ErrorUtils !== "undefined") {
+  ErrorUtils.setGlobalHandler((error: Error | null, isFatal?: boolean) => {
+    console.log("[GLOBAL JS ERROR] fatal:", isFatal);
+    console.log("[GLOBAL JS ERROR] message:", error?.message);
+    console.log("[GLOBAL JS ERROR] stack:", error?.stack);
+  });
+}
+
 const queryClient = new QueryClient();
 
 function RootLayoutNav() {

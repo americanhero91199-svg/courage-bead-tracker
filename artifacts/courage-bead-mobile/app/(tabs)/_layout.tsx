@@ -1,10 +1,17 @@
 import { BlurView } from "expo-blur";
 import { Tabs } from "expo-router";
-import { SymbolView } from "expo-symbols";
 import { Feather } from "@expo/vector-icons";
 import React from "react";
 import { Platform, StyleSheet, View, useColorScheme } from "react-native";
 import { useColors } from "@/hooks/useColors";
+
+// expo-symbols is iOS-only (Apple SF Symbols — no Android native module).
+// A static import crashes on Android with JavascriptException at module load
+// time before any component renders. Lazy conditional require ensures the
+// module is never evaluated on Android.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const SymbolView: any =
+  Platform.OS === "ios" ? require("expo-symbols").SymbolView : null;
 
 export default function TabLayout() {
   const colors = useColors();
