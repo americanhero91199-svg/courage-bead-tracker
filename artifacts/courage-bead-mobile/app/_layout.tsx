@@ -16,21 +16,32 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { BeadStoreProvider } from "@/context/BeadStoreContext";
 import { BeadDefinitionsProvider } from "@/context/BeadDefinitionsContext";
 
-SplashScreen.preventAutoHideAsync();
-
-// Global JS error handler — captures the real exception message before
-// ExceptionsManagerModule wraps it. Visible in adb logcat as LOG tags.
+// ─── Global JS error handler ────────────────────────────────────────────────
+// Must be first module-level code so it's active before any other evaluation.
+// In adb logcat, filter: adb logcat | grep "BEADS\|ReactNativeJS\|fatal"
 if (typeof ErrorUtils !== "undefined") {
   ErrorUtils.setGlobalHandler((error: Error | null, isFatal?: boolean) => {
-    console.log("[GLOBAL JS ERROR] fatal:", isFatal);
-    console.log("[GLOBAL JS ERROR] message:", error?.message);
-    console.log("[GLOBAL JS ERROR] stack:", error?.stack);
+    console.log("=== BEADS FATAL JS ERROR ===");
+    console.log("BEADS isFatal:", isFatal);
+    console.log("BEADS message:", error?.message ?? "(no message)");
+    console.log("BEADS stack:", error?.stack ?? "(no stack)");
+    console.log("=== END BEADS ERROR ===");
   });
 }
 
+// ─── Startup checkpoints ─────────────────────────────────────────────────────
+// Each log confirms we reached that point. If logcat stops at a checkpoint,
+// the crash is in the next step. Filter: adb logcat | grep BEADS
+console.log("BEADS [1] _layout module evaluated");
+
+SplashScreen.preventAutoHideAsync();
+console.log("BEADS [2] SplashScreen.preventAutoHideAsync() called");
+
 const queryClient = new QueryClient();
+console.log("BEADS [3] QueryClient created");
 
 function RootLayoutNav() {
+  console.log("BEADS [6] RootLayoutNav rendering");
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="index" />
@@ -57,6 +68,8 @@ function RootLayoutNav() {
 }
 
 export default function RootLayout() {
+  console.log("BEADS [4] RootLayout function entered");
+
   const [fontsLoaded, fontError] = useFonts({
     Inter_400Regular,
     Inter_500Medium,
@@ -65,12 +78,18 @@ export default function RootLayout() {
   });
 
   useEffect(() => {
+    console.log("BEADS [5] fonts effect — loaded:", fontsLoaded, "error:", fontError?.message ?? null);
     if (fontsLoaded || fontError) {
       SplashScreen.hideAsync();
     }
   }, [fontsLoaded, fontError]);
 
-  if (!fontsLoaded && !fontError) return null;
+  if (!fontsLoaded && !fontError) {
+    console.log("BEADS [4b] waiting for fonts…");
+    return null;
+  }
+
+  console.log("BEADS [4c] fonts ready, rendering providers");
 
   return (
     <SafeAreaProvider>
