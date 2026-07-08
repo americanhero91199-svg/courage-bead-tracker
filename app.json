@@ -23,7 +23,7 @@
     },
     "android": {
       "package": "com.couragebeads.tracker",
-      "versionCode": 15,
+      "versionCode": 16,
       "adaptiveIcon": {
         "foregroundImage": "./artifacts/courage-bead-mobile/assets/images/icon.png",
         "backgroundColor": "#FFFAEB"

@@ -18,5 +18,12 @@
   },
   "dependencies": {
     "@replit/connectors-sdk": "^0.4.1"
+  },
+  "expo": {
+    "autolinking": {
+      "searchPaths": [
+        "./artifacts/courage-bead-mobile/node_modules"
+      ]
+    }
   }
 }
