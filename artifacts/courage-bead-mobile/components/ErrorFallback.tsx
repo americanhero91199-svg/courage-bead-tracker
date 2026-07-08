@@ -25,6 +25,15 @@ export function ErrorFallback({ error, resetError }: ErrorFallbackProps) {
 
   const [isModalVisible, setIsModalVisible] = useState(false);
 
+  // Always log to console so adb logcat captures it in release builds too.
+  // __DEV__ gates the in-app modal, but the log must fire regardless.
+  React.useEffect(() => {
+    console.log('=== BEADS ERROR BOUNDARY CAUGHT ===');
+    console.log('BEADS boundary message:', error?.message ?? '(none)');
+    console.log('BEADS boundary stack:', error?.stack ?? '(none)');
+    console.log('=== END BEADS BOUNDARY ===');
+  }, [error]);
+
   const handleRestart = async () => {
     try {
       await reloadAppAsync();
