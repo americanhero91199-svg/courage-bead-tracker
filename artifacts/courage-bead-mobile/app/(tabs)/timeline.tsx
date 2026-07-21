@@ -103,7 +103,7 @@ function buildPrintHtml(
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Courage Bead Timeline</title>
+  <title>Bead Timeline</title>
   <style>
     @page { size: letter portrait; margin: 0.75in; }
     * { -webkit-print-color-adjust: exact; print-color-adjust: exact; box-sizing: border-box; }
@@ -114,8 +114,8 @@ function buildPrintHtml(
 </head>
 <body>
   <div class="header">
-    <div style="font-size:13px;letter-spacing:4px;text-transform:uppercase;color:#ED5773;font-family:Helvetica Neue,Arial,sans-serif;margin-bottom:10px;">✦ Courage Bead Tracker ✦</div>
-    <div style="font-size:30px;font-weight:bold;color:#1a1a1a;margin-bottom:6px;">Courage Bead Timeline</div>
+    <div style="font-size:13px;letter-spacing:4px;text-transform:uppercase;color:#ED5773;font-family:Helvetica Neue,Arial,sans-serif;margin-bottom:10px;">✦ Bead Tracker ✦</div>
+    <div style="font-size:30px;font-weight:bold;color:#1a1a1a;margin-bottom:6px;">Bead Timeline</div>
     ${childName ? `<div style="font-size:20px;color:#ED5773;margin-bottom:4px;">${childName}'s Journey of Courage</div>` : ""}
     ${dateRange ? `<div style="font-size:14px;color:#888;font-family:Helvetica Neue,Arial,sans-serif;margin-top:4px;">${dateRange}</div>` : ""}
     <div style="font-size:13px;color:#aaa;font-family:Helvetica Neue,Arial,sans-serif;margin-top:6px;">${countLine}</div>
@@ -123,7 +123,7 @@ function buildPrintHtml(
   ${groupsHtml}
   <div class="footer">
     <div style="font-size:14px;font-style:italic;color:#888;">Every bead tells a story of courage and love. 💙</div>
-    <div style="font-size:11px;color:#bbb;margin-top:6px;font-family:Helvetica Neue,Arial,sans-serif;">Printed ${today} · Courage Bead Tracker</div>
+    <div style="font-size:11px;color:#bbb;margin-top:6px;font-family:Helvetica Neue,Arial,sans-serif;">Printed ${today} · Bead Tracker</div>
   </div>
 </body>
 </html>`;
@@ -195,7 +195,7 @@ export default function TimelineTab() {
     <View style={[styles.root, { backgroundColor: "#FFF8E5" }]}>
       <View style={[styles.header, { paddingTop: topPad + 8 }]}>
         <View>
-          <Text style={[styles.headerTitle, { color: colors.foreground }]}>Courage Timeline</Text>
+          <Text style={[styles.headerTitle, { color: colors.foreground }]}>Bead Timeline</Text>
           <Text style={[styles.headerSub, { color: colors.mutedForeground }]}>
             Beads and reflections, in order
           </Text>

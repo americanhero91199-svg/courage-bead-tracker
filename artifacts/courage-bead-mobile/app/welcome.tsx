@@ -52,7 +52,7 @@ export default function Welcome() {
           ))}
         </View>
 
-        <Text style={[styles.title, { color: colors.foreground }]}>Courage Bead Tracker</Text>
+        <Text style={[styles.title, { color: colors.foreground }]}>Bead Tracker</Text>
         <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>
           Track every brave moment.{"\n"}One bead at a time.
         </Text>
